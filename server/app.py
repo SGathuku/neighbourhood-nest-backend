@@ -8,6 +8,7 @@ from datetime import datetime
 from models import db, SuperAdmin, Admin, Resident, Neighborhood, News, Contact, Event
 from flask_migrate import Migrate
 from flask_cors import CORS
+
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
