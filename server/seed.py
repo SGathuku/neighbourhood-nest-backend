@@ -1,7 +1,7 @@
 from faker import Faker
+from datetime import datetime
 from app import app
-from models import db, SuperAdmin, Admin, Resident, Neighborhood, Activity, News, Contact
-import cloudinary.uploader
+from models import db, SuperAdmin, Admin, Resident, Neighborhood, Activity, News, Contact, Event
 
 with app.app_context():
     fake = Faker()
@@ -14,6 +14,8 @@ with app.app_context():
     db.session.query(Neighborhood).delete()
     db.session.query(Activity).delete()
     db.session.query(News).delete()
+    db.session.query(Contact).delete()
+    db.session.query(Event).delete()
     db.session.commit()
 
    
@@ -25,6 +27,8 @@ with app.app_context():
     neighborhoods = []
     activities = []
     news = []
+    contacts = []
+    events = []
 
 def seed_residents(num=10):
     for _ in range(num):
@@ -93,6 +97,29 @@ def seed_contacts(num=10):
         db.session.add(contact)
     db.session.commit()
 
+def seed_events():
+    events = [
+        {
+            'name': 'Brian Atkins',
+            'description': 'Century glass opportunity...',
+            'date': datetime.strptime('2012-02-14', '%Y-%m-%d').date(),
+            'image_url': 'https://placekitten.com/744/88'
+        },
+        {
+            'name': 'Mary Zamora',
+            'description': 'Remain effect give blood...',
+            'date': datetime.strptime('1981-06-24', '%Y-%m-%d').date(),
+            'image_url': 'https://dummyimage.com/163x664'
+        },
+        # Add other events similarly
+    ]
+    
+    for event_data in events:
+        event = Event(**event_data)
+        db.session.add(event)
+    
+    db.session.commit()
+
 if __name__ == '__main__':
     from app import app
     with app.app_context():
@@ -103,6 +130,7 @@ if __name__ == '__main__':
         seed_news()
         seed_neighborhoods()
         seed_contacts()
+        seed_events()
         print("Database seeded successfully.")
 
     
