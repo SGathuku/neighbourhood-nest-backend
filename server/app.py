@@ -62,14 +62,24 @@ class AdminResidentsResource(Resource):
 
     def post(self, admin_id):
         admin = Admin.query.get_or_404(admin_id)
-        data = request.json
-        profile_image = request.files.get('profile_image')
 
+        # Retrieve JSON data from the request
+        data = request.get_json()
+
+        # Ensure all required fields are present in the request
+        required_fields = ['name', 'email', 'house_number', 'password']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({'message': f'Missing required field: {field}'}), 400
+
+        # Handle file upload
+        profile_image = request.files.get('profile_image')
         profile_image_url = None
         if profile_image:
             upload_result = cloudinary.uploader.upload(profile_image)
-            profile_image_url = upload_result['url']
+            profile_image_url = upload_result.get('url')
 
+        # Create new resident
         new_resident = Resident(
             name=data['name'],
             email=data['email'],
@@ -77,10 +87,14 @@ class AdminResidentsResource(Resource):
             neighborhood_id=admin.neighborhood_id,
             profile_image_url=profile_image_url
         )
+        
+        # Set the hashed password
         new_resident.set_password(data['password'])
 
+        # Add to database
         db.session.add(new_resident)
         db.session.commit()
+
         return jsonify(new_resident.to_dict()), 201
 
 class AdminResidentResource(Resource):

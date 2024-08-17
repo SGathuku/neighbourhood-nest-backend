@@ -1,8 +1,8 @@
-"""initial migration
+"""password fix
 
-Revision ID: 7da219afa8c6
+Revision ID: 9267fb6021a9
 Revises: 
-Create Date: 2024-08-17 13:47:27.589389
+Create Date: 2024-08-17 15:18:51.356831
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7da219afa8c6'
+revision = '9267fb6021a9'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -54,7 +54,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
-    sa.Column('password_hash', sa.String(length=128), nullable=False),
+    sa.Column('password', sa.String(length=128), nullable=False),
     sa.Column('url', sa.String(length=255), nullable=True),
     sa.Column('profile_image_url', sa.String(length=255), nullable=True),
     sa.PrimaryKeyConstraint('id'),
@@ -64,7 +64,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
-    sa.Column('password_hash', sa.String(length=128), nullable=False),
+    sa.Column('password', sa.String(length=128), nullable=False),
     sa.Column('url', sa.String(length=255), nullable=True),
     sa.Column('neighborhood_id', sa.Integer(), nullable=False),
     sa.Column('profile_image_url', sa.String(length=255), nullable=True),
@@ -76,7 +76,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
     sa.Column('email', sa.String(length=100), nullable=False),
-    sa.Column('password_hash', sa.String(length=128), nullable=False),
+    sa.Column('password', sa.String(length=128), nullable=False),
     sa.Column('house_number', sa.String(length=50), nullable=True),
     sa.Column('neighborhood_id', sa.Integer(), nullable=False),
     sa.Column('profile_image_url', sa.String(length=255), nullable=True),

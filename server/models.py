@@ -17,7 +17,7 @@ class Resident(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
     house_number = db.Column(db.String(50))
     neighborhood_id = db.Column(db.Integer, db.ForeignKey('neighborhoods.id'), nullable=False)
     profile_image_url = db.Column(db.String(255))  # URL for profile picture
@@ -28,10 +28,10 @@ class Resident(db.Model, SerializerMixin):
         return f"<Resident {self.name} (ID: {self.id}, Email: {self.email})>"
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password, password)
     
     def to_dict(self):
         return {
@@ -48,7 +48,7 @@ class Admin(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
     url = db.Column(db.String(255))  # URL for profile picture
     neighborhood_id = db.Column(db.Integer, db.ForeignKey('neighborhoods.id'), nullable=False)
     profile_image_url = db.Column(db.String(255))  # URL for profile picture
@@ -59,10 +59,10 @@ class Admin(db.Model, SerializerMixin):
         return f"<Admin {self.name} (ID: {self.id}, Email: {self.email})>"
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password, password)
     
     def to_dict(self):
         return {
@@ -78,7 +78,7 @@ class SuperAdmin(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
     url = db.Column(db.String(255))  # URL for profile picture
     profile_image_url = db.Column(db.String(255))  # URL for profile picture
 
@@ -86,10 +86,10 @@ class SuperAdmin(db.Model, SerializerMixin):
         return f"<SuperAdmin {self.name} (ID: {self.id}, Email: {self.email})>"
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return check_password_hash(self.password, password)
     
     def to_dict(self):
         return {
