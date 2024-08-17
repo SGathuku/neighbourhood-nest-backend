@@ -66,6 +66,45 @@ class AdminNewsResource(Resource):
         return {"message": "News deleted"}
 
 
+class AdminEventsResource(Resource):
+    def get(self, admin_id):
+        admin = Admin.query.get_or_404(admin_id)
+        events = Event.query.filter_by(neighborhood_id=admin.neighborhood_id).all()
+        return jsonify([event.to_dict() for event in events])
+
+    def post(self, admin_id):
+        admin = Admin.query.get_or_404(admin_id)
+        data = request.json
+        new_event = Event(
+            title=data['title'],
+            description=data['description'],
+            neighborhood_id=admin.neighborhood_id,
+            date_created=datetime.utcnow()
+        )
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify(new_event.to_dict()), 201
+
+class AdminEventResource(Resource):
+    def put(self, admin_id, event_id):
+        admin = Admin.query.get_or_404(admin_id)
+        event = Event.query.get_or_404(event_id)
+        data = request.json
+        event.title = data['title']
+        event.description = data['description']
+        db.session.commit()
+        return jsonify(event.to_dict())
+
+    def delete(self, admin_id, event_id):
+        admin = Admin.query.get_or_404(admin_id)
+        event = Event.query.get_or_404(event_id)
+        if event.neighborhood_id != admin.neighborhood_id:
+            return {"error": "Unauthorized"}, 403
+        db.session.delete(event)
+        db.session.commit()
+        return {"message": "Event deleted"}
+
+
 class SuperAdminAdminResource(Resource):
     def get(self, super_admin_id):
         super_admin = SuperAdmin.query.get_or_404(super_admin_id)
@@ -148,6 +187,15 @@ class NewsListResource(Resource):
         db.session.commit()
         return jsonify(new_news.to_dict()), 201
 
+
+
+class UserLoginResource(Resource):
+    def post(self):
+        data = request.json
+        email = data.get('email')
+        # Logic to check if email exists in Resident, Admin, or SuperAdmin table and authenticate
+        # Return appropriate response
+        return jsonify({"message": "User logged in successfully"})
 
 # Admin routes
 api.add_resource(AdminResidentsResource, '/admin/<int:admin_id>/residents')
