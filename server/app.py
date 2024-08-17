@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from flask_restful import Resource
-from models import SuperAdmin, Admin, Resident, News, Event, Neighborhood, db
+from models import SuperAdmin, Admin, Resident, News, Event, Neighborhood, Contact, Activity, db
 from datetime import datetime
 from flask import Flask
 from flask_restful import Api
