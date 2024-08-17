@@ -12,6 +12,62 @@ api = Api(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///neighborhood.db'
 db.init_app(app)
 
+class UserLoginResource(Resource):
+    def post(self):
+        data = request.json
+        email = data.get('email')
+        # Logic to check if email exists in Resident, Admin, or SuperAdmin table and authenticate
+        # Return appropriate response
+        return jsonify({"message": "User logged in successfully"})
+
+
+class SuperAdminAdminResource(Resource):
+    def get(self, super_admin_id):
+        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
+        admins = Admin.query.all()
+        return jsonify([admin.to_dict() for admin in admins])
+
+    def post(self, super_admin_id):
+        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
+        data = request.json
+        new_admin = Admin(
+            name=data['name'],
+            email=data['email'],
+            url=data['url'],
+            neighborhood_id=data['neighborhood_id']
+        )
+        db.session.add(new_admin)
+        db.session.commit()
+        return jsonify(new_admin.to_dict()), 201
+
+    def delete(self, super_admin_id, admin_id):
+        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
+        admin = Admin.query.get_or_404(admin_id)
+        db.session.delete(admin)
+        db.session.commit()
+        return {"message": "Admin deleted"}
+
+class SuperAdminNeighborhoodResource(Resource):
+    def post(self, super_admin_id):
+        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
+        data = request.json
+        new_neighborhood = Neighborhood(
+            name=data['name'],
+            location=data['location'],
+            image_url=data['image_url']
+        )
+        db.session.add(new_neighborhood)
+        db.session.commit()
+        return jsonify(new_neighborhood.to_dict()), 201
+
+    def delete(self, super_admin_id, neighborhood_id):
+        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
+        neighborhood = Neighborhood.query.get_or_404(neighborhood_id)
+        db.session.delete(neighborhood)
+        db.session.commit()
+        return {"message": "Neighborhood deleted"}
+ 
+
 
 class AdminResidentsResource(Resource):
     def get(self, admin_id):
@@ -105,51 +161,33 @@ class AdminEventResource(Resource):
         return {"message": "Event deleted"}
 
 
-class SuperAdminAdminResource(Resource):
-    def get(self, super_admin_id):
-        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
-        admins = Admin.query.all()
-        return jsonify([admin.to_dict() for admin in admins])
+class ResidentEventsResource(Resource):
+    def get(self, resident_id):
+        resident = Resident.query.get_or_404(resident_id)
+        events = Event.query.filter_by(neighborhood_id=resident.neighborhood_id).all()
+        return jsonify([event.to_dict() for event in events])
 
-    def post(self, super_admin_id):
-        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
+    def post(self, resident_id):
+        resident = Resident.query.get_or_404(resident_id)
         data = request.json
-        new_admin = Admin(
-            name=data['name'],
-            email=data['email'],
-            url=data['url'],
-            neighborhood_id=data['neighborhood_id']
+        new_event = Event(
+            title=data['title'],
+            description=data['description'],
+            neighborhood_id=resident.neighborhood_id,
+            date_created=datetime.utcnow()
         )
-        db.session.add(new_admin)
+        db.session.add(new_event)
         db.session.commit()
-        return jsonify(new_admin.to_dict()), 201
+        return jsonify(new_event.to_dict()), 201
 
-    def delete(self, super_admin_id, admin_id):
-        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
-        admin = Admin.query.get_or_404(admin_id)
-        db.session.delete(admin)
+    def delete(self, resident_id, event_id):
+        resident = Resident.query.get_or_404(resident_id)
+        event = Event.query.get_or_404(event_id)
+        if event.neighborhood_id != resident.neighborhood_id:
+            return {"error": "Unauthorized"}, 403
+        db.session.delete(event)
         db.session.commit()
-        return {"message": "Admin deleted"}
-
-class SuperAdminNeighborhoodResource(Resource):
-    def post(self, super_admin_id):
-        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
-        data = request.json
-        new_neighborhood = Neighborhood(
-            name=data['name'],
-            location=data['location'],
-            image_url=data['image_url']
-        )
-        db.session.add(new_neighborhood)
-        db.session.commit()
-        return jsonify(new_neighborhood.to_dict()), 201
-
-    def delete(self, super_admin_id, neighborhood_id):
-        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
-        neighborhood = Neighborhood.query.get_or_404(neighborhood_id)
-        db.session.delete(neighborhood)
-        db.session.commit()
-        return {"message": "Neighborhood deleted"}
+        return {"message": "Event deleted"}
 
 
 class NewsResource(Resource):
@@ -187,15 +225,20 @@ class NewsListResource(Resource):
         db.session.commit()
         return jsonify(new_news.to_dict()), 201
 
-
-
-class UserLoginResource(Resource):
+class ContactResource(Resource):
     def post(self):
         data = request.json
-        email = data.get('email')
-        # Logic to check if email exists in Resident, Admin, or SuperAdmin table and authenticate
-        # Return appropriate response
-        return jsonify({"message": "User logged in successfully"})
+        new_contact = Contact(
+            name=data['name'],
+            email=data['email'],
+            subject=data['subject'],
+            description=data['description']
+        )
+        db.session.add(new_contact)
+        db.session.commit()
+        return jsonify(new_contact.to_dict()), 201
+
+
 
 # Admin routes
 api.add_resource(AdminResidentsResource, '/admin/<int:admin_id>/residents')
