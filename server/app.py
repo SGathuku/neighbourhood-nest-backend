@@ -1,6 +1,17 @@
 from flask import request, jsonify
 from flask_restful import Resource
 from models import SuperAdmin, Admin, Resident, News, Event, Neighborhood, db
+from datetime import datetime
+from flask import Flask
+from flask_restful import Api
+
+app = Flask(__name__)
+api = Api(app)
+
+#Setting configurations
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///neighborhood.db'
+db.init_app(app)
+
 
 class AdminResidentsResource(Resource):
     def get(self, admin_id):
@@ -136,3 +147,20 @@ class NewsListResource(Resource):
         db.session.add(new_news)
         db.session.commit()
         return jsonify(new_news.to_dict()), 201
+
+
+# Admin routes
+api.add_resource(AdminResidentsResource, '/admin/<int:admin_id>/residents')
+api.add_resource(AdminResidentResource, '/admin/<int:admin_id>/residents/<int:resident_id>')
+api.add_resource(AdminNewsResource, '/admin/<int:admin_id>/news/<int:news_id>')
+
+# SuperAdmin routes
+api.add_resource(SuperAdminAdminResource, '/superadmin/<int:super_admin_id>/admins')
+api.add_resource(SuperAdminNeighborhoodResource, '/superadmin/<int:super_admin_id>/neighborhoods')
+
+# News routes
+api.add_resource(NewsResource, '/news/<int:news_id>')
+api.add_resource(NewsListResource, '/news')
+
+if __name__ == '__main__':
+    app.run(debug=True)
