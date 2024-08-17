@@ -238,7 +238,16 @@ class ContactResource(Resource):
         db.session.commit()
         return jsonify(new_contact.to_dict()), 201
 
+class SuperAdminContactResource(Resource):
+    def get(self, super_admin_id):
+        super_admin = SuperAdmin.query.get_or_404(super_admin_id)
+        contacts = Contact.query.all()
+        return jsonify([contact.to_dict() for contact in contacts])
 
+class ActivityResource(Resource):
+    def get(self):
+        activities = Activity.query.all()
+        return jsonify([activity.to_dict() for activity in activities])
 
 # Admin routes
 api.add_resource(AdminResidentsResource, '/admin/<int:admin_id>/residents')
@@ -252,6 +261,23 @@ api.add_resource(SuperAdminNeighborhoodResource, '/superadmin/<int:super_admin_i
 # News routes
 api.add_resource(NewsResource, '/news/<int:news_id>')
 api.add_resource(NewsListResource, '/news')
+
+# User routes
+api.add_resource(UserLoginResource, '/login')
+
+# Admin routes
+api.add_resource(AdminEventsResource, '/admin/<int:admin_id>/events')
+api.add_resource(AdminEventResource, '/admin/<int:admin_id>/events/<int:event_id>')
+
+# Resident routes
+api.add_resource(ResidentEventsResource, '/resident/<int:resident_id>/events')
+
+# Contact routes
+api.add_resource(ContactResource, '/contact')
+api.add_resource(SuperAdminContactResource, '/superadmin/<int:super_admin_id>/contacts')
+
+# Activity routes
+api.add_resource(ActivityResource, '/activities')
 
 if __name__ == '__main__':
     app.run(debug=True)
