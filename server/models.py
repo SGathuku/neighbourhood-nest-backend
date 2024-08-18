@@ -2,15 +2,26 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy_serializer import SerializerMixin
-import cloudinary.uploader
-# from sqlalchemy.orm import validates
 from datetime import datetime
-import re
 
 metadata = MetaData()
-
 db = SQLAlchemy(metadata=metadata)
 
+class Role(db.Model, SerializerMixin):
+    __tablename__ = 'roles'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+    description = db.Column(db.String(255))
+
+    def __repr__(self):
+        return f"<Role {self.name} (ID: {self.id})>"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+        }
 
 class Resident(db.Model, SerializerMixin):
     __tablename__ = 'residents'
@@ -20,10 +31,13 @@ class Resident(db.Model, SerializerMixin):
     password_hash = db.Column(db.String(128), nullable=False)
     house_number = db.Column(db.String(50))
     neighborhood_id = db.Column(db.Integer, db.ForeignKey('neighborhoods.id'), nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     profile_image_url = db.Column(db.String(255))  # URL for profile picture
 
     neighborhood = db.relationship('Neighborhood', back_populates='residents')
     activities = db.relationship('Activity', back_populates='resident', foreign_keys='Activity.resident_id')
+    role = db.relationship('Role')
+
     def __repr__(self):
         return f"<Resident {self.name} (ID: {self.id}, Email: {self.email})>"
 
@@ -40,7 +54,8 @@ class Resident(db.Model, SerializerMixin):
             'email': self.email,
             'house_number': self.house_number,
             'neighborhood_id': self.neighborhood_id,
-            'profile_image_url': self.profile_image_url
+            'profile_image_url': self.profile_image_url,
+            'role': self.role.to_dict()
         }
 
 class Admin(db.Model, SerializerMixin):
@@ -49,11 +64,12 @@ class Admin(db.Model, SerializerMixin):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    url = db.Column(db.String(255))  # URL for profile picture
     neighborhood_id = db.Column(db.Integer, db.ForeignKey('neighborhoods.id'), nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     profile_image_url = db.Column(db.String(255))  # URL for profile picture
 
     neighborhood = db.relationship('Neighborhood', back_populates='admins')
+    role = db.relationship('Role')
 
     def __repr__(self):
         return f"<Admin {self.name} (ID: {self.id}, Email: {self.email})>"
@@ -69,8 +85,8 @@ class Admin(db.Model, SerializerMixin):
             'id': self.id,
             'name': self.name,
             'email': self.email,
-            'url': self.url,
-            'profile_image_url': self.profile_image_url
+            'profile_image_url': self.profile_image_url,
+            'role': self.role.to_dict()
         }
 
 class SuperAdmin(db.Model, SerializerMixin):
@@ -79,8 +95,10 @@ class SuperAdmin(db.Model, SerializerMixin):
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
-    url = db.Column(db.String(255))  # URL for profile picture
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'), nullable=False)
     profile_image_url = db.Column(db.String(255))  # URL for profile picture
+
+    role = db.relationship('Role')
 
     def __repr__(self):
         return f"<SuperAdmin {self.name} (ID: {self.id}, Email: {self.email})>"
@@ -90,14 +108,14 @@ class SuperAdmin(db.Model, SerializerMixin):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-    
+
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
             'email': self.email,
-            'url': self.url,
-            'profile_image_url': self.profile_image_url
+            'profile_image_url': self.profile_image_url,
+            'role': self.role.to_dict()
         }
 
 class News(db.Model, SerializerMixin):
