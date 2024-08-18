@@ -1,136 +1,114 @@
-from faker import Faker
-from datetime import datetime
-from app import app
-from models import db, SuperAdmin, Admin, Resident, Neighborhood, Activity, News, Contact, Event
+from models import db, Resident, Neighborhood, News, Event, Contact
+from werkzeug.security import generate_password_hash
+from datetime import datetime, timezone
 
-with app.app_context():
-    fake = Faker()
+def seed_data():
+    # Create Neighborhoods
+    default_neighborhood = Neighborhood(name="Default Neighborhood", location="N/A", image_url="https://example.com/default.jpg")
+    neighborhood1 = Neighborhood(name="Greenfield", location="123 Green St", image_url="https://example.com/greenfield.jpg")
+    neighborhood2 = Neighborhood(name="Sunnyvale", location="456 Sun St", image_url="https://example.com/sunnyvale.jpg")
 
-    # Delete all records/rows in the tables
-
-    db.session.query(SuperAdmin).delete()
-    db.session.query(Admin).delete()
-    db.session.query(Resident).delete()
-    db.session.query(Neighborhood).delete()
-    db.session.query(Activity).delete()
-    db.session.query(News).delete()
-    db.session.query(Contact).delete()
-    db.session.query(Event).delete()
+    db.session.add_all([default_neighborhood, neighborhood1, neighborhood2])
     db.session.commit()
 
-   
-    # Empty lists for each table
-
-    superadmins = []
-    admins = []
-    residents = []
-    neighborhoods = []
-    activities = []
-    news = []
-    contacts = []
-    events = []
-
-def seed_residents(num=10):
-    for _ in range(num):
-        resident = Resident(
-            name=fake.name(),
-            email=fake.email(),
-            house_number=fake.building_number(),
-            neighborhood_id=fake.random_int(min=1, max=5),
-            profile_image_url=fake.image_url()
+    # Create or Update SuperAdmin
+    super_admin = Resident.query.filter_by(email="superadmin@example.com").first()
+    if super_admin is None:
+        super_admin = Resident(
+            name="Super Admin",
+            email="superadmin@example.com",
+            password=generate_password_hash("superpassword"),
+            role="SuperAdmin",
+            neighborhood_id=default_neighborhood.id  # Assign to default neighborhood
         )
-        resident.set_password(fake.password())
-        db.session.add(resident)
+        db.session.add(super_admin)
+    else:
+        super_admin.name = "Super Admin"
+        super_admin.password = generate_password_hash("superpassword")
+        super_admin.role = "SuperAdmin"
+        super_admin.neighborhood_id = default_neighborhood.id
+
     db.session.commit()
 
-def seed_admins(num=5):
-    for _ in range(num):
-        admin = Admin(
-            name=fake.name(),
-            email=fake.email(),
-            neighborhood_id=fake.random_int(min=1, max=5),
-            profile_image_url=fake.image_url()
+    # Create or Update Admins
+    admin1 = Resident.query.filter_by(email="adminjohn@example.com").first()
+    if admin1 is None:
+        admin1 = Resident(
+            name="Admin John",
+            email="adminjohn@example.com",
+            password=generate_password_hash("adminpassword"),
+            role="Admin",
+            neighborhood_id=neighborhood1.id
         )
-        admin.set_password(fake.password())
-        db.session.add(admin)
-    db.session.commit()
+        db.session.add(admin1)
+    else:
+        admin1.name = "Admin John"
+        admin1.password = generate_password_hash("adminpassword")
+        admin1.role = "Admin"
+        admin1.neighborhood_id = neighborhood1.id
 
-def seed_superadmins(num=2):
-    for _ in range(num):
-        superadmin = SuperAdmin(
-            name=fake.name(),
-            email=fake.email(),
-            profile_image_url=fake.image_url()
+    admin2 = Resident.query.filter_by(email="adminjane@example.com").first()
+    if admin2 is None:
+        admin2 = Resident(
+            name="Admin Jane",
+            email="adminjane@example.com",
+            password=generate_password_hash("adminpassword"),
+            role="Admin",
+            neighborhood_id=neighborhood2.id
         )
-        superadmin.set_password(fake.password())
-        db.session.add(superadmin)
+        db.session.add(admin2)
+    else:
+        admin2.name = "Admin Jane"
+        admin2.password = generate_password_hash("adminpassword")
+        admin2.role = "Admin"
+        admin2.neighborhood_id = neighborhood2.id
+
     db.session.commit()
 
-def seed_news(num=10):
-    for _ in range(num):
-        news = News(
-            title=fake.sentence(nb_words=5),
-            description=fake.text(),
-            image_url=fake.image_url()
+    # Create or Update Residents
+    resident1 = Resident.query.filter_by(email="bob_unique@example.com").first()
+    if resident1 is None:
+        resident1 = Resident(
+            name="Resident Bob",
+            email="bob_unique@example.com",
+            password=generate_password_hash("residentpassword"),
+            role="Resident",
+            neighborhood_id=neighborhood1.id,
+            house_number="101"
         )
-        db.session.add(news)
-    db.session.commit()
+        db.session.add(resident1)
+    else:
+        resident1.name = "Resident Bob"
+        resident1.password = generate_password_hash("residentpassword")
+        resident1.role = "Resident"
+        resident1.neighborhood_id = neighborhood1.id
+        resident1.house_number = "101"
 
-def seed_neighborhoods(num=5):
-    for _ in range(num):
-        neighborhood = Neighborhood(
-            name=fake.word(),
-            location=fake.address(),
-            image_url=fake.image_url()
+    resident2 = Resident.query.filter_by(email="alice_unique@example.com").first()
+    if resident2 is None:
+        resident2 = Resident(
+            name="Resident Alice",
+            email="alice_unique@example.com",
+            password=generate_password_hash("residentpassword"),
+            role="Resident",
+            neighborhood_id=neighborhood2.id,
+            house_number="202"
         )
-        db.session.add(neighborhood)
+        db.session.add(resident2)
+    else:
+        resident2.name = "Resident Alice"
+        resident2.password = generate_password_hash("residentpassword")
+        resident2.role = "Resident"
+        resident2.neighborhood_id = neighborhood2.id
+        resident2.house_number = "202"
+
     db.session.commit()
 
-def seed_contacts(num=10):
-    for _ in range(num):
-        contact = Contact(
-            name=fake.name(),
-            email=fake.email(),
-            subject=fake.sentence(nb_words=3),
-            description=fake.text()
-        )
-        db.session.add(contact)
-    db.session.commit()
+    # The rest of your seed data logic...
+    print("Database seeded successfully!")
 
-def seed_events():
-    events = [
-        {
-            'name': 'Brian Atkins',
-            'description': 'Century glass opportunity...',
-            'date': datetime.strptime('2012-02-14', '%Y-%m-%d').date(),
-            'image_url': 'https://placekitten.com/744/88'
-        },
-        {
-            'name': 'Mary Zamora',
-            'description': 'Remain effect give blood...',
-            'date': datetime.strptime('1981-06-24', '%Y-%m-%d').date(),
-            'image_url': 'https://dummyimage.com/163x664'
-        },
-        # Add other events similarly
-    ]
-    
-    for event_data in events:
-        event = Event(**event_data)
-        db.session.add(event)
-    
-    db.session.commit()
+if __name__ == "__main__":
+    from app import app  # Import the app to use its context
 
-if __name__ == '__main__':
-    from app import app
     with app.app_context():
-        db.create_all()
-        seed_residents()
-        seed_admins()
-        seed_superadmins()
-        seed_news()
-        seed_neighborhoods()
-        seed_contacts()
-        seed_events()
-        print("Database seeded successfully.")
-
-    
+        seed_data()
